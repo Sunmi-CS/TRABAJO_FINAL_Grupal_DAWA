@@ -54,13 +54,34 @@ npm install
 
 Crea un archivo `.env` basado en `.env.example`:
 ```env
-DATABASE_URL="tu_transaction_connection_string"
-DIRECT_URL="tu_session_connection_string"
-JWT_SECRET="clave_secreta_segura"
+# ── Base de Datos (Supabase PostgreSQL) ──────────────────────────────────────
+DATABASE_URL="postgresql://usuario:password@host:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://usuario:password@host:5432/postgres"
+
+# ── JWT ──────────────────────────────────────────────────────────────────────
+JWT_SECRET="una_clave_larga_y_segura"
+JWT_EXPIRES_IN="7d"
+
+# ── Google OAuth ─────────────────────────────────────────────────────────────
 GOOGLE_CLIENT_ID="tu_google_client_id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="tu_google_client_secret"
+
+# ── Supabase Storage ─────────────────────────────────────────────────────────
 SUPABASE_URL="https://tu-proyecto.supabase.co"
 SUPABASE_SERVICE_ROLE_KEY="tu_service_role_key"
+SUPABASE_BUCKET_PETS="pets-images"
+
+# ── Servidor ─────────────────────────────────────────────────────────────────
+PORT=4000
+NODE_ENV="development"
+
+# ── Upload Config ────────────────────────────────────────────────────────────
+MAX_FILE_SIZE_MB=5
+ALLOWED_MIME_TYPES="image/jpeg,image/jpg,image/png,image/webp"
+
+# ── CORS ─────────────────────────────────────────────────────────────────────
 FRONTEND_URL="http://localhost:3000"
+
 ```
 
 Generar esquema Prisma y hacer push a la base de datos:
