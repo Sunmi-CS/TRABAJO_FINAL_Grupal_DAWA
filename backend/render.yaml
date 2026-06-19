@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: petcare-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET_PETS
+        value: pets-images
+      - key: MAX_FILE_SIZE_MB
+        value: "5"
+      - key: ALLOWED_MIME_TYPES
+        value: "image/jpeg,image/jpg,image/png,image/webp"
+      - key: FRONTEND_URL
+        sync: false

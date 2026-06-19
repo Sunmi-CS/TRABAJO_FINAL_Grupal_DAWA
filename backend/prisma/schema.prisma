@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  password     String?
+  image        String?
+  provider     Provider      @default(LOCAL)
+  role         Role          @default(CLIENTE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  pets         Pet[]
+  reservations Reservation[]
+
+  @@map("users")
+}
+
+model Pet {
+  id           String        @id @default(cuid())
+  name         String
+  species      String
+  breed        String?
+  age          Int
+  weight       Float
+  photoUrl     String?
+  notes        String?
+  ownerId      String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@map("pets")
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  name         String
+  description  String
+  price        Float
+  duration     Int
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+
+  @@map("services")
+}
+
+model Reservation {
+  id              String            @id @default(cuid())
+  reservationDate DateTime
+  reservationTime String
+  status          ReservationStatus @default(PENDING)
+  notes           String?
+  ownerId         String
+  petId           String
+  serviceId       String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  owner           User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  pet             Pet               @relation(fields: [petId], references: [id], onDelete: Cascade)
+  service         Service           @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("reservations")
+}
+
+enum Role {
+  ADMIN
+  CLIENTE
+}
+
+enum Provider {
+  LOCAL
+  GOOGLE
+}
+
+enum ReservationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
