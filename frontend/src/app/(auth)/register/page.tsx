@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,10 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import api from '@/lib/axios';
-import { AuthResponse } from '@/types';
-import { setAuth } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
+import { normalizeRedirectPath } from '@/lib/auth';
 
 const registerSchema = z
   .object({
@@ -30,11 +28,13 @@ const registerSchema = z
 type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { loginWithGoogle } = useAuth();
-  const router = useRouter();
+  const { register: registerUser, loginWithGoogle } = useAuth();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const redirectTo = normalizeRedirectPath(searchParams.get('redirect'));
+  const hasGoogleAuth = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
   const {
     register,
@@ -46,15 +46,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError('');
     try {
-      const response = await api.post<AuthResponse>('/api/auth/register', {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      });
-      if (response.data.success) {
-        setAuth(response.data.data.token, response.data.data.user);
-        router.push('/dashboard');
-      }
+      await registerUser(data.name, data.email, data.password, redirectTo);
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
       setError(axiosError?.response?.data?.message ?? 'Error al registrarse');
@@ -66,7 +58,7 @@ export default function RegisterPage() {
   const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
     if (!credentialResponse.credential) return;
     try {
-      await loginWithGoogle(credentialResponse.credential);
+      await loginWithGoogle(credentialResponse.credential, redirectTo);
     } catch {
       setError('Error al registrarse con Google');
     }
@@ -157,20 +149,29 @@ export default function RegisterPage() {
         <div className="flex-1 h-px bg-dark/10" />
       </div>
 
-      <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => setError('Error al conectar con Google')}
-          theme="outline"
-          size="large"
-          text="signup_with"
-          shape="rectangular"
-        />
-      </div>
+      {hasGoogleAuth ? (
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('Error al conectar con Google')}
+            theme="outline"
+            size="large"
+            text="signup_with"
+            shape="rectangular"
+          />
+        </div>
+      ) : (
+        <p className="text-center text-sm text-dark/50">
+          El registro con Google no está configurado en este entorno.
+        </p>
+      )}
 
       <p className="text-center text-sm text-dark/60 mt-6">
         ¿Ya tienes cuenta?{' '}
-        <Link href="/login" className="text-primary font-medium hover:underline">
+        <Link
+          href={`/login?redirect=${encodeURIComponent(redirectTo)}`}
+          className="text-primary font-medium hover:underline"
+        >
           Inicia sesión
         </Link>
       </p>

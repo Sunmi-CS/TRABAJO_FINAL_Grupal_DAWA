@@ -9,11 +9,11 @@ export const metadata: Metadata = {
     template: '%s | PetCare',
   },
   description:
-    'PetCare es la plataforma líder para gestión de guarderías para mascotas. Registra tus mascotas, solicita reservas y lleva el control de todos los servicios.',
-  keywords: ['guardería mascotas', 'petcare', 'cuidado de mascotas', 'reservas mascotas'],
+    'PetCare centraliza la gestión de guarderías para mascotas con registro de mascotas, reservas y control de servicios.',
+  keywords: ['guardería mascotas', 'petcare', 'cuidado de mascotas', 'reservas mascotas', 'servicios para mascotas'],
   openGraph: {
     title: 'PetCare - Guardería para Mascotas',
-    description: 'La plataforma más completa para cuidar a tu mascota',
+    description: 'Gestiona mascotas, reservas y servicios desde una sola plataforma.',
     type: 'website',
   },
 };
@@ -24,6 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+  const content = <AuthProvider>{children}</AuthProvider>;
 
   return (
     <html lang="es">
@@ -36,9 +37,13 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <GoogleOAuthProvider clientId={googleClientId}>
-          <AuthProvider>{children}</AuthProvider>
-        </GoogleOAuthProvider>
+        {googleClientId ? (
+          <GoogleOAuthProvider clientId={googleClientId}>
+            {content}
+          </GoogleOAuthProvider>
+        ) : (
+          content
+        )}
       </body>
     </html>
   );

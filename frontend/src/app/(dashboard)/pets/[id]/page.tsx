@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Edit2, Calendar, Scale, Clock, Activity, PawPrint } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/Badge';
+import { VaccinationSection } from '@/components/vaccinations/VaccinationSection';
 
 // Helper SSR para hacer fetch con el token
 async function getPet(id: string): Promise<Pet | null> {
@@ -134,7 +135,13 @@ export default async function PetDetailPage({ params }: { params: Promise<{ id: 
         </div>
 
         {/* Columna Derecha: Historial */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
+          <VaccinationSection
+            petId={pet.id}
+            petName={pet.name}
+            canManage
+          />
+
           <div className="card h-full">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold flex items-center gap-2">

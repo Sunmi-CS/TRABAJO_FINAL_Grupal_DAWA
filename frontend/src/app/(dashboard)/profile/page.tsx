@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
@@ -42,6 +42,16 @@ export default function ProfilePage() {
     }
   });
 
+  useEffect(() => {
+    if (user) {
+      reset({
+        name: user.name,
+        currentPassword: '',
+        newPassword: '',
+      });
+    }
+  }, [reset, user]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -62,17 +72,15 @@ export default function ProfilePage() {
     setSuccessMsg('');
 
     try {
-      const payload: any = { name: data.name };
+      const payload: Record<string, string> = { name: data.name };
       if (data.newPassword) {
         payload.password = data.newPassword;
+        payload.currentPassword = data.currentPassword ?? '';
       }
 
-      let updatedUser = { ...user!, name: data.name };
-
-      // Update name and password
       const res = await api.put<{ success: boolean; data: User }>(`/api/users/${user?.id}`, payload);
+      let updatedUser = res.data.data;
 
-      // Update avatar if selected
       if (photoFile && user?.provider === 'LOCAL') {
         const formData = new FormData();
         formData.append('avatar', photoFile);
@@ -86,9 +94,9 @@ export default function ProfilePage() {
       setSuccessMsg('Perfil actualizado exitosamente');
       reset({ name: data.name, currentPassword: '', newPassword: '' });
       setPhotoFile(null);
+      setPreviewUrl(null);
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      console.error(error);
       setErrorMsg(axiosError.response?.data?.message || 'Error al actualizar el perfil');
     } finally {
       setIsLoading(false);
