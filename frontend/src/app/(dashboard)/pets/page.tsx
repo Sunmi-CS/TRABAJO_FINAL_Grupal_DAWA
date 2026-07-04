@@ -14,16 +14,19 @@ export default function PetsPage() {
   const { user } = useAuth();
   const [pets, setPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchPets = async () => {
+    setError(null);
     try {
       const { data } = await api.get<ApiResponse<Pet[]>>('/api/pets');
       setPets(data.data);
     } catch (error) {
       console.error('Error fetching pets:', error);
+      setError('No se pudieron cargar las mascotas. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +86,15 @@ export default function PetsPage() {
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="spinner w-8 h-8" />
+        </div>
+      ) : error ? (
+        <div className="card text-center py-16">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">⚠️</span>
+          </div>
+          <h3 className="text-lg font-bold text-dark mb-2">Ocurrió un error</h3>
+          <p className="text-dark/60 text-sm mb-6">{error}</p>
+          <button onClick={fetchPets} className="btn-primary">Reintentar</button>
         </div>
       ) : filteredPets.length === 0 ? (
         <div className="card text-center py-16">

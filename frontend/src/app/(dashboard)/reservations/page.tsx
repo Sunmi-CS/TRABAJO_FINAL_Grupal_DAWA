@@ -15,17 +15,20 @@ export default function ReservationsPage() {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [viewingReservation, setViewingReservation] = useState<Reservation | null>(null);
 
   const fetchReservations = async () => {
+    setError(null);
     try {
       setIsLoading(true);
       const res = await api.get<PaginatedResponse<Reservation>>('/api/reservations?limit=100');
       setReservations(res.data.data);
-    } catch (error) {
-      console.error('Error fetching reservations:', error);
+    } catch (err) {
+      setError('No se pudieron cargar las reservas. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
     }
@@ -36,12 +39,12 @@ export default function ReservationsPage() {
   }, []);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
+    setStatusError(null);
     try {
       await api.put(`/api/reservations/${id}`, { status: newStatus });
       fetchReservations();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Error al actualizar el estado');
+    } catch (err) {
+      setStatusError('No se pudo actualizar el estado. Intenta nuevamente.');
     }
   };
 
@@ -73,6 +76,13 @@ export default function ReservationsPage() {
         subtitle={user?.role === 'ADMIN' ? 'Administra todas las reservas del sistema' : 'Historial de tus servicios programados'}
         actions={headerActions}
       />
+
+      {statusError && (
+        <div className="flex items-center justify-between gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-4">
+          <span>{statusError}</span>
+          <button onClick={() => setStatusError(null)} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
+        </div>
+      )}
 
       <div className="card space-y-6">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -111,6 +121,15 @@ export default function ReservationsPage() {
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="spinner w-8 h-8" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 border-2 border-dashed border-red-100 rounded-2xl">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            <h3 className="text-lg font-bold text-dark mb-2">Ocurrió un error</h3>
+            <p className="text-dark/60 text-sm mb-6">{error}</p>
+            <button onClick={fetchReservations} className="btn-primary">Reintentar</button>
           </div>
         ) : filteredReservations.length === 0 ? (
           <div className="text-center py-16 border-2 border-dashed border-dark/10 rounded-2xl">

@@ -14,27 +14,26 @@ export default function ClientDashboard() {
   const [pets, setPets] = useState<Pet[]>([]);
   const [recentReservations, setRecentReservations] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDashboardData = async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      const [petsRes, resRes] = await Promise.all([
+        api.get('/api/pets'),
+        api.get('/api/reservations?limit=5'),
+      ]);
+      setPets(petsRes.data.data.slice(0, 3));
+      setRecentReservations(resRes.data.data);
+    } catch (err) {
+      setError('No se pudieron cargar los datos. Intenta nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const petsRes = await api.get('/api/pets');
-        console.log('Pets OK:', petsRes.data);
-
-        const resRes = await api.get('/api/reservations?limit=5');
-        console.log('Reservations OK:', resRes.data);
-
-        setPets(petsRes.data.data.slice(0, 3));
-        setRecentReservations(resRes.data.data);
-      } catch (error: any) {
-        console.error('ERROR STATUS:', error.response?.status);
-        console.error('ERROR DATA:', error.response?.data);
-        console.error('ERROR COMPLETO:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
 
@@ -42,6 +41,19 @@ export default function ClientDashboard() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="spinner w-8 h-8" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card text-center py-16 max-w-md mx-auto mt-12">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-3xl">⚠️</span>
+        </div>
+        <h3 className="text-lg font-bold text-dark mb-2">Ocurrió un error</h3>
+        <p className="text-dark/60 text-sm mb-6">{error}</p>
+        <button onClick={fetchDashboardData} className="btn-primary">Reintentar</button>
       </div>
     );
   }
