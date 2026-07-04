@@ -38,8 +38,24 @@ model Pet {
   updatedAt    DateTime      @updatedAt
   owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   reservations Reservation[]
+  vaccinations Vaccination[]
 
   @@map("pets")
+}
+
+model Vaccination {
+  id              String   @id @default(cuid())
+  name            String
+  applicationDate DateTime
+  nextDueDate     DateTime?
+  notes           String?
+  petId           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  pet             Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@index([petId])
+  @@map("vaccinations")
 }
 
 model Service {

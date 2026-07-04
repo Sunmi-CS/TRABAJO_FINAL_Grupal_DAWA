@@ -8,6 +8,7 @@ async function main() {
 
   // Limpiar datos existentes
   await prisma.reservation.deleteMany();
+  await prisma.vaccination.deleteMany();
   await prisma.pet.deleteMany();
   await prisma.service.deleteMany();
   await prisma.user.deleteMany();
@@ -183,6 +184,42 @@ async function main() {
   const pets = [pet1, pet2, pet3, pet4, pet5];
 
   console.log(`✅ Mascotas creadas: ${pets.length}`);
+
+  // Crear historial de vacunas
+  await prisma.vaccination.createMany({
+    data: [
+      {
+        name: 'Antirrabica',
+        applicationDate: new Date('2026-01-15T12:00:00.000Z'),
+        nextDueDate: new Date('2027-01-15T12:00:00.000Z'),
+        notes: 'Aplicada sin reacciones.',
+        petId: pet1.id,
+      },
+      {
+        name: 'Sextuple',
+        applicationDate: new Date('2026-02-10T12:00:00.000Z'),
+        nextDueDate: new Date('2027-02-10T12:00:00.000Z'),
+        notes: 'Control anual recomendado.',
+        petId: pet1.id,
+      },
+      {
+        name: 'Triple felina',
+        applicationDate: new Date('2026-03-05T12:00:00.000Z'),
+        nextDueDate: new Date('2027-03-05T12:00:00.000Z'),
+        notes: 'Luna estuvo tranquila durante la aplicacion.',
+        petId: pet2.id,
+      },
+      {
+        name: 'Bordetella',
+        applicationDate: new Date('2026-04-20T12:00:00.000Z'),
+        nextDueDate: new Date('2026-10-20T12:00:00.000Z'),
+        notes: 'Importante para guarderia y socializacion.',
+        petId: pet3.id,
+      },
+    ],
+  });
+
+  console.log('✅ Vacunas creadas: 4');
 
 
   // ── Crear reservas ────────────────────────────────────────────────────────

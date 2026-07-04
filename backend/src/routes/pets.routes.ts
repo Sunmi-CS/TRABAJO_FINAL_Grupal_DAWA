@@ -6,16 +6,23 @@ import {
   updatePet,
   deletePet,
 } from '../controllers/pets.controller';
+import {
+  createVaccination,
+  getVaccinationsByPet,
+} from '../controllers/vaccinations.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { uploadPetPhoto } from '../middlewares/upload.middleware';
 import { createPetSchema, updatePetSchema } from '../schemas/pet.schema';
+import { vaccinationSchema } from '../schemas/vaccination.schema';
 
 const router = Router();
 
 router.use(authenticate);
 
 router.get('/', getPets);
+router.get('/:petId/vaccinations', getVaccinationsByPet);
+router.post('/:petId/vaccinations', validate(vaccinationSchema), createVaccination);
 router.get('/:id', getPetById);
 
 router.post(

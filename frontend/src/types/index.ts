@@ -29,6 +29,18 @@ export interface Pet {
   createdAt?: string;
   owner?: Pick<User, 'id' | 'name' | 'email' | 'image'>;
   _count?: { reservations: number };
+  vaccinations?: Vaccination[];
+}
+
+export interface Vaccination {
+  id: string;
+  name: string;
+  applicationDate: string;
+  nextDueDate?: string | null;
+  notes?: string | null;
+  petId: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Service {
@@ -134,5 +146,12 @@ export interface ReservationForm {
   serviceId: string;
   reservationDate: string;
   reservationTime: string;
+  notes?: string;
+}
+
+export interface VaccinationForm {
+  name: string;
+  applicationDate: string;
+  nextDueDate?: string;
   notes?: string;
 }

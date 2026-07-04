@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import type { Metadata } from 'next';
+import { normalizeRedirectPath } from '@/lib/auth';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -21,10 +22,13 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { login, loginWithGoogle } = useAuth();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const redirectTo = normalizeRedirectPath(searchParams.get('redirect'));
+  const hasGoogleAuth = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
   const {
     register,
@@ -38,7 +42,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
     try {
-      await login(data.email, data.password);
+      await login(data.email, data.password, redirectTo);
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
       setError(axiosError?.response?.data?.message ?? 'Credenciales inválidas');
@@ -52,7 +56,7 @@ export default function LoginPage() {
     setGoogleLoading(true);
     setError('');
     try {
-      await loginWithGoogle(credentialResponse.credential);
+      await loginWithGoogle(credentialResponse.credential, redirectTo);
     } catch {
       setError('Error al autenticar con Google');
     } finally {
@@ -124,21 +128,30 @@ export default function LoginPage() {
         <div className="flex-1 h-px bg-dark/10" />
       </div>
 
-      <div className={`flex justify-center ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => setError('Error al conectar con Google')}
-          theme="outline"
-          size="large"
-          width={300}
-          text="signin_with"
-          shape="rectangular"
-        />
-      </div>
+      {hasGoogleAuth ? (
+        <div className={`flex justify-center ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('Error al conectar con Google')}
+            theme="outline"
+            size="large"
+            width={300}
+            text="signin_with"
+            shape="rectangular"
+          />
+        </div>
+      ) : (
+        <p className="text-center text-sm text-dark/50">
+          El acceso con Google no está configurado en este entorno.
+        </p>
+      )}
 
       <p className="text-center text-sm text-dark/60 mt-6">
         ¿No tienes cuenta?{' '}
-        <Link href="/register" className="text-primary font-medium hover:underline">
+        <Link
+          href={`/register?redirect=${encodeURIComponent(redirectTo)}`}
+          className="text-primary font-medium hover:underline"
+        >
           Regístrate aquí
         </Link>
       </p>

@@ -8,6 +8,7 @@ import petsRoutes from './routes/pets.routes';
 import servicesRoutes from './routes/services.routes';
 import reservationsRoutes from './routes/reservations.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import vaccinationsRoutes from './routes/vaccinations.routes';
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -45,6 +46,7 @@ app.use('/api/pets', petsRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/vaccinations', vaccinationsRoutes);
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

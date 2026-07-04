@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/register', '/'];
+const PUBLIC_PATHS = ['/', '/services'];
+const AUTH_PATHS = ['/login', '/register'];
 const ADMIN_PATHS = ['/dashboard/admin'];
 
 export function middleware(request: NextRequest) {
@@ -9,18 +10,22 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('petcare_token')?.value;
   const userCookie = request.cookies.get('petcare_user')?.value;
 
-  // Rutas públicas: redirigir al dashboard si ya está autenticado
-  if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith('/login') || pathname.startsWith('/register'))) {
-    if (token && pathname !== '/') {
+  if (AUTH_PATHS.some((path) => pathname === path)) {
+    if (token) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
+
+    return NextResponse.next();
+  }
+
+  if (PUBLIC_PATHS.some((path) => pathname === path)) {
     return NextResponse.next();
   }
 
   // Rutas protegidas: redirigir al login si no está autenticado
   if (!token) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
+    loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -41,6 +46,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg|.*\\.webp).*)',
   ],
 };

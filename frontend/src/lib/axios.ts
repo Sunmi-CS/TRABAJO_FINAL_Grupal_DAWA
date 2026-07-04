@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import { clearAuth, getToken, normalizeRedirectPath } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -14,7 +14,7 @@ const api = axios.create({
 // Interceptor: agregar token JWT a cada petición
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('petcare_token') ?? (typeof window !== 'undefined' ? localStorage.getItem('petcare_token') : null);
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,12 +28,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      Cookies.remove('petcare_token');
-      Cookies.remove('petcare_user');
+      clearAuth();
+
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('petcare_token');
-        window.location.href = '/login';
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+        const redirectTarget = normalizeRedirectPath(currentPath);
+        const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register';
+
+        if (!isAuthPage) {
+          window.location.href = `/login?redirect=${encodeURIComponent(redirectTarget)}`;
+        }
       }
     }
     return Promise.reject(error);

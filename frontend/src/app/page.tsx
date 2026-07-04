@@ -1,7 +1,11 @@
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { ArrowRight, PawPrint, Calendar, ShieldCheck } from 'lucide-react';
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const isAuthenticated = Boolean(cookieStore.get('petcare_token')?.value);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -13,12 +17,25 @@ export default function Home() {
           <span className="text-xl font-bold text-dark">PetCare</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-dark font-medium hover:text-primary transition-colors">
-            Iniciar Sesión
-          </Link>
-          <Link href="/register" className="btn-primary">
-            Registrarse
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link href="/services" className="text-dark font-medium hover:text-primary transition-colors">
+                Servicios
+              </Link>
+              <Link href="/dashboard" className="btn-primary">
+                Ir al Panel
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="text-dark font-medium hover:text-primary transition-colors">
+                Iniciar Sesión
+              </Link>
+              <Link href="/register" className="btn-primary">
+                Registrarse
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -31,11 +48,14 @@ export default function Home() {
               El mejor cuidado para tu mejor <span className="text-primary">amigo</span>
             </h1>
             <p className="text-lg lg:text-xl text-dark/70 mb-10 max-w-2xl mx-auto text-balance">
-              Una plataforma moderna para gestionar las reservas, vacunas y el cuidado de tu mascota en nuestra guardería premium.
+              Gestiona mascotas, agenda servicios y centraliza la operación diaria de tu guardería en una sola plataforma.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/register" className="btn-primary !px-8 !py-4 !text-base w-full sm:w-auto">
-                Empezar ahora <ArrowRight className="w-5 h-5" />
+              <Link
+                href={isAuthenticated ? '/dashboard' : '/register'}
+                className="btn-primary !px-8 !py-4 !text-base w-full sm:w-auto"
+              >
+                {isAuthenticated ? 'Abrir mi panel' : 'Empezar ahora'} <ArrowRight className="w-5 h-5" />
               </Link>
               <Link href="/services" className="btn-outline !px-8 !py-4 !text-base w-full sm:w-auto bg-white">
                 Ver servicios
